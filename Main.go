@@ -150,9 +150,6 @@ func calcEv(iteration int) {
 	loop := 0
 	for result := range resultCh {
 		loop++
-		if loop >= iteration {
-			return
-		}
 		ev = (ev*float64(loop-1) + float64(result.score)) / float64(loop)
 
 		fmt.Println("iteration:", loop)
@@ -162,6 +159,10 @@ func calcEv(iteration int) {
 		fmt.Println("EV:", ev)
 		fmt.Println("Elapsed:", time.Since(now))
 		fmt.Println("********************")
+
+		if loop >= iteration {
+			return
+		}
 	}
 }
 
