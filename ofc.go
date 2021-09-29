@@ -3,6 +3,8 @@ package main
 import (
 	"reflect"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 // Deuce : 0
@@ -25,6 +27,7 @@ const (
 )
 
 type Handrank []int
+type Board [][]int
 
 // ３枚役の強さを評価
 // return : [役, ランク, キッカー]
@@ -218,4 +221,66 @@ func cardsToRanks(cards []int) []int {
 		ranks = append(ranks, v%13)
 	}
 	return ranks
+}
+
+func validate(b Board) bool {
+	// mid
+	midRank := evalFive(b[1])
+	if midRank[0] != 0 || midRank[1] > T {
+		return false
+	}
+
+	topRank := evalTop(b[0])
+	botRank := evalFive(b[2])
+	return compair(topRank, botRank)
+}
+
+// a < b : true
+func compair(a, b []int) bool {
+	for i := 0; i < min(len(a), len(b)); i++ {
+		if a[i] > b[i] {
+			return false
+		}
+	}
+	if len(a) < len(b) {
+		return true
+	} else {
+		return false
+	}
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	} else {
+		return b
+	}
+}
+
+var rankTable = []string{"T", "Q", "K", "A"}
+var suitTable = []string{"s", "h", "d", "c"}
+
+type Card int
+
+func (c Card) String() string {
+	var rankStr string
+	if rank := c % 13; rank < T {
+		rankStr = strconv.Itoa(int(rank) + 2)
+	} else {
+		rankStr = rankTable[rank-T]
+	}
+
+	suit := suitTable[int(c)/13]
+	return rankStr + suit
+}
+
+type Row []Card
+
+func (r Row) String() string {
+	rowStr := []string{}
+	for _, card := range r {
+		rowStr = append(rowStr, card.String())
+	}
+
+	return strings.Join(rowStr, " ")
 }

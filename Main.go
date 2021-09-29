@@ -115,14 +115,16 @@ func solve() {
 	b2 := <-c
 	fmt.Println(b1)
 	fmt.Println(b2)
-	myHand := []int{0, 1, 2, 3, 5}
-	fmt.Println("MyHand", myHand)
-	bot := evalFive(cards)
-	fmt.Println(bot)
-	botR := botRoyalty(bot)
-	fmt.Println(botR)
-	midR := midRoyalty(myHand)
-	fmt.Println("mid:", midR)
+	top := []int{13 + 8, 8, 9}
+	topC := []Card{13 + 8, 8, 9}
+	mid := []int{0, 13 + 1, 2, 3, 5}
+	bot := []int{13*2 + 10, 10, 13*2 + 5, 13*3 + 5, 9}
+	myBoard := [][]int{top, mid, bot}
+
+	fmt.Println(myBoard)
+	fmt.Println("valid:", validate(myBoard))
+	fmt.Println(topC)
+
 }
 
 func main() {
