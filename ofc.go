@@ -302,6 +302,18 @@ func (c Cards) toInts() []int {
 	return s
 }
 
+func (c Cards) String() string {
+	// rank順に並べる
+	sort.Slice(c, func(i, j int) bool {
+		return c[i]%13 > c[j]%13
+	})
+	strs := []string{}
+	for _, v := range c {
+		strs = append(strs, v.String())
+	}
+	return fmt.Sprint(strs)
+}
+
 type Row []Card
 
 func (r Row) toInts() []int {

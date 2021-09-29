@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 // Bottom Royalties:
@@ -126,10 +127,14 @@ func findBoardWorker(resultCh chan<- Result, cardsCh <-chan Cards) {
 	}
 }
 
+var now = time.Now()
+
 func calcEv(iteration int) {
 	numWorker := 8
 	cardsCh := make(chan Cards, numWorker)
 	resultCh := make(chan Result)
+	defer close(cardsCh)
+	defer close(resultCh)
 
 	for i := 0; i < numWorker; i++ {
 		go findBoardWorker(resultCh, cardsCh)
@@ -145,6 +150,9 @@ func calcEv(iteration int) {
 	loop := 0
 	for result := range resultCh {
 		loop++
+		if loop >= iteration {
+			return
+		}
 		ev = (ev*float64(loop-1) + float64(result.score)) / float64(loop)
 
 		fmt.Println("iteration:", loop)
@@ -152,6 +160,7 @@ func calcEv(iteration int) {
 		fmt.Println("Board:", result.board)
 		fmt.Println("Received:", result.received)
 		fmt.Println("EV:", ev)
+		fmt.Println("Elapsed:", time.Since(now))
 		fmt.Println("********************")
 	}
 }
