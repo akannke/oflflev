@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/chehsunliu/poker"
 )
 
 // Bottom Royalties:
@@ -56,23 +54,38 @@ func combinations(list []int, select_num, buf int) (c chan []int) {
 	return
 }
 
-func selectBoardCards(cards []int, buf int) (c chan [][]int) {
-	c = make(chan [][]int, buf)
+func selectBoardCards(cards Cards, buf int) (c chan Board) {
+
+	c = make(chan Board, buf)
 	go func() {
 		defer close(c)
 		// 13 = top + middle + bottom
-		for a := range combinations(cards, 13, buf) {
+		for a := range combinations(cards.toInts(), 13, buf) {
 			// 8 = top + middle
 			for b := range combinations(a, 8, buf) {
 				bottom := diff(a, b)
 				for top := range combinations(b, 3, buf) {
 					mid := diff(b, top)
-					c <- [][]int{top, mid, bottom}
+					c <- NewBoard(top, mid, bottom)
 				}
 			}
 		}
 	}()
 	return
+}
+
+func findBoardTakeBestScore(cards Cards, buf int) (int, Board) {
+	c := selectBoardCards(cards, buf)
+	maxScore := 0
+	var board Board = nil
+
+	for b := range c {
+		if ok, currentScore := calcScore(b); ok && currentScore >= maxScore {
+			maxScore = currentScore
+			board = b
+		}
+	}
+	return maxScore, board
 }
 
 // 引数に渡すスライスには重複がないこと
@@ -94,37 +107,30 @@ func diff(left, right []int) []int {
 	return result
 }
 
-func newCards(ss []string) []poker.Card {
-	cards := []poker.Card{}
-	for _, s := range ss {
-		cards = append(cards, poker.NewCard(s))
+func calcEv(iteration int) {
+	var ev float64 = 0
+	buf := 16
+	for i := 0; i < iteration; i++ {
+		drawing := draw(14)
+		fmt.Println("iteration:", i)
+		fmt.Println("received:", drawing)
+		score, board := findBoardTakeBestScore(drawing, buf)
+		if i == 0 {
+			ev = float64(score)
+		} else {
+			ev = (ev*float64(i) + float64(score)) / float64(i+1)
+		}
+
+		fmt.Println("Score:", score)
+		fmt.Println("Board:", board)
+		fmt.Println("EV:", ev)
+		fmt.Println("********************")
 	}
-	return cards
+
 }
 
 func solve() {
-	cards := []int{}
-	buf := 5
-	n := 15
-	for i := 0; i < n; i++ {
-		cards = append(cards, i)
-	}
-
-	c := selectBoardCards(cards, buf)
-	b1 := <-c
-	b2 := <-c
-	fmt.Println(b1)
-	fmt.Println(b2)
-	top := []int{13 + 8, 8, 9}
-	topC := []Card{13 + 8, 8, 9}
-	mid := []int{0, 13 + 1, 2, 3, 5}
-	bot := []int{13*2 + 10, 10, 13*2 + 5, 13*3 + 5, 9}
-	myBoard := [][]int{top, mid, bot}
-
-	fmt.Println(myBoard)
-	fmt.Println("valid:", validate(myBoard))
-	fmt.Println(topC)
-
+	calcEv(1000)
 }
 
 func main() {

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
+	"math/rand"
 	"reflect"
 	"sort"
 	"strconv"
-	"strings"
+	"time"
 )
 
 // Deuce : 0
@@ -27,7 +29,11 @@ const (
 )
 
 type Handrank []int
-type Board [][]int
+type Board []Row
+
+func NewBoard(t, m, b []int) Board {
+	return Board{toRow(t), toRow(m), toRow(b)}
+}
 
 // ３枚役の強さを評価
 // return : [役, ランク, キッカー]
@@ -190,11 +196,11 @@ func midRoyalty(cards []int) int {
 	perfect := []int{5, 3, 2, 1, 0}
 	if reflect.DeepEqual(ranks, perfect) {
 		return 8
-	} else if cards[0] == 7 {
+	} else if ranks[0] == 5 {
 		return 4
-	} else if cards[0] == 8 {
+	} else if ranks[0] == 6 {
 		return 2
-	} else if cards[0] == 9 {
+	} else if ranks[0] == 7 {
 		return 1
 	} else {
 		return 0
@@ -225,14 +231,26 @@ func cardsToRanks(cards []int) []int {
 
 func validate(b Board) bool {
 	// mid
-	midRank := evalFive(b[1])
+	midRank := evalFive(b[1].toInts())
 	if midRank[0] != 0 || midRank[1] > T {
 		return false
 	}
 
-	topRank := evalTop(b[0])
-	botRank := evalFive(b[2])
+	topRank := evalTop(b[0].toInts())
+	botRank := evalFive(b[2].toInts())
 	return compair(topRank, botRank)
+}
+
+func calcScore(b Board) (bool, int) {
+	midRank := evalFive(b[1].toInts())
+	topRank := evalTop(b[0].toInts())
+	botRank := evalFive(b[2].toInts())
+
+	if validate(b) {
+		return true, topRoyalty(topRank) + midRoyalty(midRank) + botRoyalty(botRank)
+	} else {
+		return false, 0 // faul
+	}
 }
 
 // a < b : true
@@ -257,7 +275,7 @@ func min(a, b int) int {
 	}
 }
 
-var rankTable = []string{"T", "Q", "K", "A"}
+var rankTable = []string{"T", "J", "Q", "K", "A"}
 var suitTable = []string{"s", "h", "d", "c"}
 
 type Card int
@@ -274,13 +292,62 @@ func (c Card) String() string {
 	return rankStr + suit
 }
 
+type Cards []Card
+
+func (c Cards) toInts() []int {
+	s := []int{}
+	for _, v := range c {
+		s = append(s, int(v))
+	}
+	return s
+}
+
 type Row []Card
 
-func (r Row) String() string {
-	rowStr := []string{}
-	for _, card := range r {
-		rowStr = append(rowStr, card.String())
+func (r Row) toInts() []int {
+	s := []int{}
+	for _, v := range r {
+		s = append(s, int(v))
 	}
+	return s
+}
 
-	return strings.Join(rowStr, " ")
+func (r Row) String() string {
+	// rank順に並べる
+	sort.Slice(r, func(i, j int) bool {
+		return r[i]%13 > r[j]%13
+	})
+	strs := []string{}
+	for _, v := range r {
+		strs = append(strs, v.String())
+	}
+	return fmt.Sprint(strs)
+}
+
+func toRow(s []int) Row {
+	row := []Card{}
+	for _, v := range s {
+		row = append(row, Card(v))
+	}
+	return row
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func draw(n int) []Card {
+	selected := make(map[int]bool)
+	for counter := 0; counter < n; {
+		a := rand.Intn(52)
+		if !selected[a] {
+			selected[a] = true
+			counter++
+		}
+	}
+	keys := make([]Card, 0, len(selected))
+	for k := range selected {
+		keys = append(keys, Card(k))
+	}
+	return keys
 }
