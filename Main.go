@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/chehsunliu/poker"
 )
 
@@ -14,37 +15,7 @@ import (
 //    Flush: 4 points
 //    Straight: 2 points
 //
-//// Middle Royalties:
 //
-//    7-5-4-3-2 perfect: 8 points
-//    7-low: 4 points
-//    8-low: 2 points
-//    9-low: 1 point
-//
-//// Top Royalties:
-//
-//    AAA: 22 points
-//    KKK: 21 points
-//    QQQ: 20 points
-//    JJJ: 19 points
-//    TTT: 18 points
-//    999: 17 points
-//    888: 16 points
-//    777: 15 points
-//    666: 14 points
-//    555: 13 points
-//    444: 12 points
-//    333: 11 points
-//    222: 10 points
-//    AA: 9 points
-//    KK: 8 points
-//    QQ: 7 points
-//    JJ: 6 points
-//    TT: 5 points
-//    99: 4 points
-//    88: 3 points
-//    77: 2 points
-//    66: 1 point
 //
 // 2: 0, 3: 1, ... , T: 8, J: 9, Q: 10, K: 11, A: 12
 // Spade: 0, Heart: 1, Diamond: 2, Clover: 3
@@ -144,7 +115,14 @@ func solve() {
 	b2 := <-c
 	fmt.Println(b1)
 	fmt.Println(b2)
-	fmt.Println(evalTop([]int{0, 13, 26}))
+	myHand := []int{0, 1, 2, 3, 5}
+	fmt.Println("MyHand", myHand)
+	bot := evalFive(cards)
+	fmt.Println(bot)
+	botR := botRoyalty(bot)
+	fmt.Println(botR)
+	midR := midRoyalty(myHand)
+	fmt.Println("mid:", midR)
 }
 
 func main() {
