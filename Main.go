@@ -107,30 +107,57 @@ func diff(left, right []int) []int {
 	return result
 }
 
-func calcEv(iteration int) {
-	var ev float64 = 0
-	buf := 16
-	for i := 0; i < iteration; i++ {
-		drawing := draw(14)
-		fmt.Println("iteration:", i)
-		fmt.Println("received:", drawing)
-		score, board := findBoardTakeBestScore(drawing, buf)
-		if i == 0 {
-			ev = float64(score)
-		} else {
-			ev = (ev*float64(i) + float64(score)) / float64(i+1)
-		}
+type Result struct {
+	score    int
+	board    Board
+	received Cards
+}
 
-		fmt.Println("Score:", score)
-		fmt.Println("Board:", board)
+func findBoardWorker(resultCh chan<- Result, cardsCh <-chan Cards) {
+	// 適当
+	buf := 10
+	for cards := range cardsCh {
+		score, board := findBoardTakeBestScore(cards, buf)
+		resultCh <- Result{
+			score:    score,
+			board:    board,
+			received: cards,
+		}
+	}
+}
+
+func calcEv(iteration int) {
+	numWorker := 8
+	cardsCh := make(chan Cards, numWorker)
+	resultCh := make(chan Result)
+
+	for i := 0; i < numWorker; i++ {
+		go findBoardWorker(resultCh, cardsCh)
+	}
+
+	go func() {
+		for i := 0; i < iteration; i++ {
+			cardsCh <- draw(14)
+		}
+	}()
+
+	var ev float64 = 0
+	loop := 0
+	for result := range resultCh {
+		loop++
+		ev = (ev*float64(loop-1) + float64(result.score)) / float64(loop)
+
+		fmt.Println("iteration:", loop)
+		fmt.Println("Score:", result.score)
+		fmt.Println("Board:", result.board)
+		fmt.Println("Received:", result.received)
 		fmt.Println("EV:", ev)
 		fmt.Println("********************")
 	}
-
 }
 
 func solve() {
-	calcEv(1000)
+	calcEv(10000)
 }
 
 func main() {
