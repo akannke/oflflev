@@ -241,6 +241,15 @@ func validate(b Board) bool {
 	return compair(topRank, botRank)
 }
 
+func validateMiddle(cards Cards) bool {
+	midRank := evalFive(cards.toInts())
+	if midRank[0] != 0 || midRank[1] > T {
+		return false
+	} else {
+		return true
+	}
+}
+
 func calcScore(b Board) (bool, int) {
 	midRank := evalFive(b[1].toInts())
 	topRank := evalTop(b[0].toInts())
@@ -312,6 +321,14 @@ func (c Cards) String() string {
 		strs = append(strs, v.String())
 	}
 	return fmt.Sprint(strs)
+}
+
+func toCards(s []int) Cards {
+	cards := []Card{}
+	for _, v := range s {
+		cards = append(cards, Card(v))
+	}
+	return cards
 }
 
 type Row []Card

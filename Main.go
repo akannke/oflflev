@@ -33,6 +33,7 @@ func isTrips(cards []int) bool {
 	return false
 }
 
+// buf消したい、override?
 func combinations(list []int, select_num, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
@@ -60,14 +61,12 @@ func selectBoardCards(cards Cards, buf int) (c chan Board) {
 	c = make(chan Board, buf)
 	go func() {
 		defer close(c)
-		// 13 = top + middle + bottom
-		for a := range combinations(cards.toInts(), 13, buf) {
-			// 8 = top + middle
-			for b := range combinations(a, 8, buf) {
-				bottom := diff(a, b)
-				for top := range combinations(b, 3, buf) {
-					mid := diff(b, top)
-					c <- NewBoard(top, mid, bottom)
+		for mid := range selectMiddleCards(cards) {
+			a := diff(cards.toInts(), mid.toInts())
+			for b := range combinations(a, 8, 1) {
+				for top := range combinations(b, 3, 1) {
+					bot := diff(b, top)
+					c <- NewBoard(top, mid.toInts(), bot)
 				}
 			}
 		}
@@ -75,7 +74,35 @@ func selectBoardCards(cards Cards, buf int) (c chan Board) {
 	return
 }
 
+func takeLow(cards Cards) Cards {
+	lowCards := Cards{}
+	ranks := cardsToRanks(cards.toInts())
+	for i := range cards {
+		if ranks[i] <= T {
+			lowCards = append(lowCards, cards[i])
+		}
+	}
+	return lowCards
+}
+
+func selectMiddleCards(cards Cards) (c chan Cards) {
+	c = make(chan Cards)
+	lowCards := takeLow(cards)
+	go func() {
+		defer close(c)
+		// buf消したい
+		for candidate := range combinations(lowCards.toInts(), 5, 1) {
+			if mid := toCards(candidate); validateMiddle(mid) {
+				// 役無しT以下のみ通過
+				c <- mid
+			}
+		}
+	}()
+	return
+}
+
 func findBoardTakeBestScore(cards Cards, buf int) (int, Board) {
+	// todo: bottomをfilterする
 	c := selectBoardCards(cards, buf)
 	maxScore := 0
 	var board Board = nil
