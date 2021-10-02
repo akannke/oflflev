@@ -1,23 +1,9 @@
-package main
+package oflflev
 
 import (
 	"fmt"
 	"time"
 )
-
-// Bottom Royalties:
-
-//    Royal Flush: 25 points
-//    Straight Flush: 15 points
-//    Four of a Kind: 10 points
-//    Full House: 6 points
-//    Flush: 4 points
-//    Straight: 2 points
-//
-//
-//
-// 2: 0, 3: 1, ... , T: 8, J: 9, Q: 10, K: 11, A: 12
-// Spade: 0, Heart: 1, Diamond: 2, Clover: 3
 
 func isTrips(cards []int) bool {
 	m := make(map[int]int)
@@ -156,7 +142,7 @@ func findBoardWorker(resultCh chan<- Result, cardsCh <-chan Cards) {
 
 var now = time.Now()
 
-func calcEv(iteration int) {
+func calcEv(iteration int, numDealt int) {
 	numWorker := 8
 	cardsCh := make(chan Cards, numWorker)
 	resultCh := make(chan Result)
@@ -169,7 +155,7 @@ func calcEv(iteration int) {
 
 	go func() {
 		for i := 0; i < iteration; i++ {
-			cardsCh <- draw(14)
+			cardsCh <- draw(numDealt)
 		}
 	}()
 
@@ -193,10 +179,6 @@ func calcEv(iteration int) {
 	}
 }
 
-func solve() {
-	calcEv(10000)
-}
-
-func main() {
-	solve()
+func Solve(iteration int, numDealt int) {
+	calcEv(iteration, numDealt)
 }
