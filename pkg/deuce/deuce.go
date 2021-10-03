@@ -36,6 +36,7 @@ func selectBoardCards(cards ofc.Cards) (c chan ofc.Board) {
 	return
 }
 
+// Boardのinterface作ってroyalty, validateを実装させる
 func calcScore(b ofc.Board) (bool, int) {
 	midRank := ofc.EvalFive(b[1].ToInts())
 	topRank := ofc.EvalTop(b[0].ToInts())

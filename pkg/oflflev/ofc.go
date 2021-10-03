@@ -28,10 +28,10 @@ const (
 )
 
 type Handrank []int
-type Board []Row
+type Board []Cards
 
 func NewBoard(t, m, b []int) Board {
-	return Board{toRow(t), toRow(m), toRow(b)}
+	return Board{ToCards(t), ToCards(m), ToCards(b)}
 }
 
 // ３枚役の強さを評価
@@ -221,36 +221,6 @@ func ToCards(s []int) Cards {
 		cards = append(cards, Card(v))
 	}
 	return cards
-}
-
-type Row []Card
-
-func (r Row) ToInts() []int {
-	s := []int{}
-	for _, v := range r {
-		s = append(s, int(v))
-	}
-	return s
-}
-
-func (r Row) String() string {
-	// rank順に並べる
-	sort.Slice(r, func(i, j int) bool {
-		return r[i]%13 > r[j]%13
-	})
-	strs := []string{}
-	for _, v := range r {
-		strs = append(strs, v.String())
-	}
-	return fmt.Sprint(strs)
-}
-
-func toRow(s []int) Row {
-	row := []Card{}
-	for _, v := range s {
-		row = append(row, Card(v))
-	}
-	return row
 }
 
 func init() {
