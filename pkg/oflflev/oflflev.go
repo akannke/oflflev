@@ -1,10 +1,5 @@
 package oflflev
 
-import (
-	"fmt"
-	"time"
-)
-
 func isTrips(cards []int) bool {
 	m := make(map[int]int)
 	for card := range cards {
@@ -20,7 +15,7 @@ func isTrips(cards []int) bool {
 }
 
 // buf消したい、override?
-func combinations(list []int, select_num, buf int) (c chan []int) {
+func Combinations(list []int, select_num, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
 		defer close(c)
@@ -33,7 +28,7 @@ func combinations(list []int, select_num, buf int) (c chan []int) {
 			return
 		default:
 			for i := 0; i < len(list); i++ {
-				for sub_comb := range combinations(list[i+1:], select_num-1, buf) {
+				for sub_comb := range Combinations(list[i+1:], select_num-1, buf) {
 					c <- append([]int{list[i]}, sub_comb...)
 				}
 			}
@@ -42,68 +37,8 @@ func combinations(list []int, select_num, buf int) (c chan []int) {
 	return
 }
 
-func selectBoardCards(cards Cards, buf int) (c chan Board) {
-
-	c = make(chan Board, buf)
-	go func() {
-		defer close(c)
-		for mid := range selectMiddleCards(cards) {
-			a := diff(cards.toInts(), mid.toInts())
-			for b := range combinations(a, 8, 1) {
-				for top := range combinations(b, 3, 1) {
-					bot := diff(b, top)
-					c <- NewBoard(top, mid.toInts(), bot)
-				}
-			}
-		}
-	}()
-	return
-}
-
-func takeLow(cards Cards) Cards {
-	lowCards := Cards{}
-	ranks := cardsToRanks(cards.toInts())
-	for i := range cards {
-		if ranks[i] <= T {
-			lowCards = append(lowCards, cards[i])
-		}
-	}
-	return lowCards
-}
-
-func selectMiddleCards(cards Cards) (c chan Cards) {
-	c = make(chan Cards)
-	lowCards := takeLow(cards)
-	go func() {
-		defer close(c)
-		// buf消したい
-		for candidate := range combinations(lowCards.toInts(), 5, 1) {
-			if mid := toCards(candidate); validateMiddle(mid) {
-				// 役無しT以下のみ通過
-				c <- mid
-			}
-		}
-	}()
-	return
-}
-
-func findBoardTakeBestScore(cards Cards, buf int) (int, Board) {
-	// todo: bottomをfilterする
-	c := selectBoardCards(cards, buf)
-	maxScore := 0
-	var board Board = nil
-
-	for b := range c {
-		if ok, currentScore := calcScore(b); ok && currentScore >= maxScore {
-			maxScore = currentScore
-			board = b
-		}
-	}
-	return maxScore, board
-}
-
 // 引数に渡すスライスには重複がないこと
-func diff(left, right []int) []int {
+func Diff(left, right []int) []int {
 	m := make(map[int]int)
 	for _, l := range left {
 		m[l]++
@@ -122,63 +57,7 @@ func diff(left, right []int) []int {
 }
 
 type Result struct {
-	score    int
-	board    Board
-	received Cards
-}
-
-func findBoardWorker(resultCh chan<- Result, cardsCh <-chan Cards) {
-	// 適当
-	buf := 10
-	for cards := range cardsCh {
-		score, board := findBoardTakeBestScore(cards, buf)
-		resultCh <- Result{
-			score:    score,
-			board:    board,
-			received: cards,
-		}
-	}
-}
-
-var now = time.Now()
-
-func calcEv(iteration int, numDealt int) {
-	numWorker := 8
-	cardsCh := make(chan Cards, numWorker)
-	resultCh := make(chan Result)
-	defer close(cardsCh)
-	defer close(resultCh)
-
-	for i := 0; i < numWorker; i++ {
-		go findBoardWorker(resultCh, cardsCh)
-	}
-
-	go func() {
-		for i := 0; i < iteration; i++ {
-			cardsCh <- draw(numDealt)
-		}
-	}()
-
-	var ev float64 = 0
-	loop := 0
-	for result := range resultCh {
-		loop++
-		ev = (ev*float64(loop-1) + float64(result.score)) / float64(loop)
-
-		fmt.Println("iteration:", loop)
-		fmt.Println("Score:", result.score)
-		fmt.Println("Board:", result.board)
-		fmt.Println("Received:", result.received)
-		fmt.Println("EV:", ev)
-		fmt.Println("Elapsed:", time.Since(now))
-		fmt.Println("********************")
-
-		if loop >= iteration {
-			return
-		}
-	}
-}
-
-func Solve(iteration int, numDealt int) {
-	calcEv(iteration, numDealt)
+	Score    int
+	Board    Board
+	Received Cards
 }
