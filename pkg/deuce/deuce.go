@@ -9,13 +9,13 @@ import (
 
 func validate(b ofc.Board) bool {
 	// mid
-	midRank := ofc.EvalFive(b[1].ToInts())
+	midRank := ofc.EvalFive(b.Middle.ToInts())
 	if midRank[0] != 0 || midRank[1] > ofc.T {
 		return false
 	}
 
-	topRank := ofc.EvalTop(b[0].ToInts())
-	botRank := ofc.EvalFive(b[2].ToInts())
+	topRank := ofc.EvalTop(b.Top.ToInts())
+	botRank := ofc.EvalFive(b.Bottom.ToInts())
 	return ofc.Compair(topRank, botRank)
 }
 
@@ -38,9 +38,9 @@ func selectBoardCards(cards ofc.Cards) (c chan ofc.Board) {
 
 // Boardのinterface作ってroyalty, validateを実装させる
 func calcScore(b ofc.Board) (bool, int) {
-	midRank := ofc.EvalFive(b[1].ToInts())
-	topRank := ofc.EvalTop(b[0].ToInts())
-	botRank := ofc.EvalFive(b[2].ToInts())
+	midRank := ofc.EvalFive(b.Middle.ToInts())
+	topRank := ofc.EvalTop(b.Top.ToInts())
+	botRank := ofc.EvalFive(b.Bottom.ToInts())
 
 	if validate(b) {
 		return true, topRoyalty(topRank) + midRoyalty(midRank) + botRoyalty(botRank)
@@ -89,7 +89,7 @@ func findBoardTakeBestScore(cards ofc.Cards) (int, ofc.Board) {
 	// todo: bottomをfilterする
 	c := selectBoardCards(cards)
 	maxScore := 0
-	var board ofc.Board = nil
+	var board ofc.Board = ofc.NewBoard([]int{}, []int{}, []int{})
 
 	for b := range c {
 		// 評価関数を外から持ってこさせたい

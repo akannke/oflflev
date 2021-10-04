@@ -28,7 +28,11 @@ const (
 )
 
 type Handrank []int
-type Board []Cards
+type Board struct {
+	Top    Cards
+	Middle Cards
+	Bottom Cards
+}
 
 func NewBoard(t, m, b []int) Board {
 	return Board{ToCards(t), ToCards(m), ToCards(b)}
