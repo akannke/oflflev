@@ -149,10 +149,10 @@ func isStraight(cards []int) bool {
 	return true
 }
 
-func CardsToRanks(cards []int) []int {
+func CardsToRanks(cards Cards) []int {
 	ranks := []int{}
 	for _, v := range cards {
-		ranks = append(ranks, v%13)
+		ranks = append(ranks, v.toInt()%13)
 	}
 	return ranks
 }

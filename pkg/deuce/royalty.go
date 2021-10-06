@@ -7,6 +7,26 @@ import (
 	ofc "github.com/akannke/oflflev/pkg/oflflev"
 )
 
+type Board ofc.Board
+
+func (b Board) TopRoyalty() int {
+	rank := ofc.EvalTop(b.Top)
+	return topRoyalty(rank)
+}
+
+func (b Board) MiddleRoyalty() int {
+	return midRoyalty(b.Middle)
+}
+
+func (b Board) BottomRoyalty() int {
+	rank := ofc.EvalTop(b.Bottom)
+	return botRoyalty(rank)
+}
+
+func (b Board) Validate() bool {
+	return validate(ofc.Board(b))
+}
+
 //    Top Royalties:
 //
 //    AAA: 22 points
@@ -47,8 +67,9 @@ func topRoyalty(hr ofc.Handrank) int {
 //    7-low: 4 points
 //    8-low: 2 points
 //    9-low: 1 point
-func midRoyalty(cards []int) int {
+func midRoyalty(cards ofc.Cards) int {
 	ranks := ofc.CardsToRanks(cards)
+	// decending sort
 	sort.Slice(ranks, func(i, j int) bool {
 		return ranks[i] > ranks[j]
 	})
@@ -79,4 +100,16 @@ var botRoyaltyTable []int = []int{0, 0, 0, 0, 2, 4, 6, 10, 15, 25}
 //    Straight: 2 points
 func botRoyalty(hr ofc.Handrank) int {
 	return botRoyaltyTable[hr[0]]
+}
+
+func validate(b ofc.Board) bool {
+	// mid
+	midRank := ofc.EvalFive(b.Middle)
+	if midRank[0] != 0 || midRank[1] > ofc.T {
+		return false
+	}
+
+	topRank := ofc.EvalTop(b.Top)
+	botRank := ofc.EvalFive(b.Bottom)
+	return ofc.Compair(topRank, botRank)
 }

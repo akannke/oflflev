@@ -7,18 +7,6 @@ import (
 	ofc "github.com/akannke/oflflev/pkg/oflflev"
 )
 
-func validate(b ofc.Board) bool {
-	// mid
-	midRank := ofc.EvalFive(b.Middle)
-	if midRank[0] != 0 || midRank[1] > ofc.T {
-		return false
-	}
-
-	topRank := ofc.EvalTop(b.Top)
-	botRank := ofc.EvalFive(b.Bottom)
-	return ofc.Compair(topRank, botRank)
-}
-
 func selectBoardCards(cards ofc.Cards) (c chan ofc.Board) {
 	c = make(chan ofc.Board)
 	go func() {
@@ -36,22 +24,9 @@ func selectBoardCards(cards ofc.Cards) (c chan ofc.Board) {
 	return
 }
 
-// Boardのinterface作ってroyalty, validateを実装させる
-func calcScore(b ofc.Board) (bool, int) {
-	midRank := ofc.EvalFive(b.Middle)
-	topRank := ofc.EvalTop(b.Top)
-	botRank := ofc.EvalFive(b.Bottom)
-
-	if validate(b) {
-		return true, topRoyalty(topRank) + midRoyalty(midRank) + botRoyalty(botRank)
-	} else {
-		return false, 0 // faul
-	}
-}
-
 func takeLow(cards ofc.Cards) ofc.Cards {
 	lowCards := ofc.Cards{}
-	ranks := ofc.CardsToRanks(cards.ToInts())
+	ranks := ofc.CardsToRanks(cards)
 	for i := range cards {
 		if ranks[i] <= ofc.T {
 			lowCards = append(lowCards, cards[i])
@@ -92,8 +67,8 @@ func findBoardTakeBestScore(cards ofc.Cards) (int, ofc.Board) {
 	var board ofc.Board = ofc.NewBoard([]int{}, []int{}, []int{})
 
 	for b := range c {
-		// 評価関数を外から持ってこさせたい
-		if ok, currentScore := calcScore(b); ok && currentScore >= maxScore {
+		ok, currentScore := ofc.CalculateScore(Board(b))
+		if ok && currentScore >= maxScore {
 			maxScore = currentScore
 			board = b
 		}
