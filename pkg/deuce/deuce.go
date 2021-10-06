@@ -9,13 +9,13 @@ import (
 
 func validate(b ofc.Board) bool {
 	// mid
-	midRank := ofc.EvalFive(b.Middle.ToInts())
+	midRank := ofc.EvalFive(b.Middle)
 	if midRank[0] != 0 || midRank[1] > ofc.T {
 		return false
 	}
 
-	topRank := ofc.EvalTop(b.Top.ToInts())
-	botRank := ofc.EvalFive(b.Bottom.ToInts())
+	topRank := ofc.EvalTop(b.Top)
+	botRank := ofc.EvalFive(b.Bottom)
 	return ofc.Compair(topRank, botRank)
 }
 
@@ -38,9 +38,9 @@ func selectBoardCards(cards ofc.Cards) (c chan ofc.Board) {
 
 // Boardのinterface作ってroyalty, validateを実装させる
 func calcScore(b ofc.Board) (bool, int) {
-	midRank := ofc.EvalFive(b.Middle.ToInts())
-	topRank := ofc.EvalTop(b.Top.ToInts())
-	botRank := ofc.EvalFive(b.Bottom.ToInts())
+	midRank := ofc.EvalFive(b.Middle)
+	topRank := ofc.EvalTop(b.Top)
+	botRank := ofc.EvalFive(b.Bottom)
 
 	if validate(b) {
 		return true, topRoyalty(topRank) + midRoyalty(midRank) + botRoyalty(botRank)
@@ -61,7 +61,7 @@ func takeLow(cards ofc.Cards) ofc.Cards {
 }
 
 func validateMiddle(cards ofc.Cards) bool {
-	midRank := ofc.EvalFive(cards.ToInts())
+	midRank := ofc.EvalFive(cards)
 	if midRank[0] != 0 || midRank[1] > ofc.T {
 		return false
 	} else {

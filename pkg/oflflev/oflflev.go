@@ -37,6 +37,7 @@ func Combinations(list []int, select_num, buf int) (c chan []int) {
 	return
 }
 
+// 集合演算
 // 引数に渡すスライスには重複がないこと
 func Diff(left, right []int) []int {
 	m := make(map[int]int)

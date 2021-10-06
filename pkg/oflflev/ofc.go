@@ -41,91 +41,89 @@ func NewBoard(t, m, b []int) Board {
 // ３枚役の強さを評価
 // return : [役, ランク, キッカー]
 // 数字が大きいほど強い
-func EvalTop(cards []int) []int {
-	// copy
-	cards = append([]int{}, cards...)
-	for i := range cards {
-		cards[i] %= 13
+func EvalTop(cards Cards) []int {
+	ranks := make([]int, len(cards))
+	for i := range ranks {
+		ranks[i] = cards[i].toInt() % 13
 	}
 
-	sort.Slice(cards, func(i, j int) bool {
-		return cards[i] > cards[j]
+	sort.Slice(ranks, func(i, j int) bool {
+		return ranks[i] > ranks[j]
 	})
 
-	if cards[0] == cards[1] && cards[1] == cards[2] {
-		return []int{TRIPS, cards[0]} // trips
-	} else if cards[0] == cards[1] {
-		return []int{PAIR, cards[1], cards[2]} // pair
-	} else if cards[1] == cards[2] {
-		return []int{PAIR, cards[1], cards[0]} // pair
+	if ranks[0] == ranks[1] && ranks[1] == ranks[2] {
+		return []int{TRIPS, ranks[0]} // trips
+	} else if ranks[0] == ranks[1] {
+		return []int{PAIR, ranks[1], ranks[2]} // pair
+	} else if ranks[1] == ranks[2] {
+		return []int{PAIR, ranks[1], ranks[0]} // pair
 	} else {
-		return []int{HI, cards[0], cards[1], cards[2]}
+		return []int{HI, ranks[0], ranks[1], ranks[2]}
 	}
 }
 
-func EvalFive(cards []int) []int {
-	// copy
-	cards = append([]int{}, cards...)
+func EvalFive(cards Cards) []int {
+	ranks := make([]int, len(cards))
 
 	flash := isSameSuit(cards)
 
 	for i := range cards {
-		cards[i] %= 13
+		ranks[i] = cards[i].toInt() % 13
 	}
 
-	sort.Slice(cards, func(i, j int) bool {
-		return cards[i] > cards[j]
+	sort.Slice(ranks, func(i, j int) bool {
+		return ranks[i] > ranks[j]
 	})
 
-	if cards[0] == A && isStraight(cards) && flash {
+	if ranks[0] == A && isStraight(ranks) && flash {
 		return []int{ROYAL} // Royal flush
-	} else if isStraight(cards) && flash {
-		return []int{STFL, cards[0]} // straight flush
-	} else if cards[0] == A && cards[1] == 3 && cards[2] == 2 && cards[3] == 1 && cards[4] == 0 && flash {
+	} else if isStraight(ranks) && flash {
+		return []int{STFL, ranks[0]} // straight flush
+	} else if ranks[0] == A && ranks[1] == 3 && ranks[2] == 2 && ranks[3] == 1 && ranks[4] == 0 && flash {
 		return []int{STFL, 3} // wheel straight flush
-	} else if cards[0] == cards[1] && cards[1] == cards[2] && cards[2] == cards[3] {
-		return []int{QUADS, cards[0], cards[4]} // quads
-	} else if cards[1] == cards[2] && cards[2] == cards[3] && cards[3] == cards[4] {
-		return []int{QUADS, cards[1], cards[0]} // quads
-	} else if cards[0] == cards[1] && cards[1] == cards[2] && cards[3] == cards[4] {
-		return []int{FULL, cards[0], cards[3]} // full
-	} else if cards[0] == cards[1] && cards[2] == cards[3] && cards[3] == cards[4] {
-		return []int{FULL, cards[2], cards[0]} // full
+	} else if ranks[0] == ranks[1] && ranks[1] == ranks[2] && ranks[2] == ranks[3] {
+		return []int{QUADS, ranks[0], ranks[4]} // quads
+	} else if ranks[1] == ranks[2] && ranks[2] == ranks[3] && ranks[3] == ranks[4] {
+		return []int{QUADS, ranks[1], ranks[0]} // quads
+	} else if ranks[0] == ranks[1] && ranks[1] == ranks[2] && ranks[3] == ranks[4] {
+		return []int{FULL, ranks[0], ranks[3]} // full
+	} else if ranks[0] == ranks[1] && ranks[2] == ranks[3] && ranks[3] == ranks[4] {
+		return []int{FULL, ranks[2], ranks[0]} // full
 	} else if flash {
-		return []int{FLUSH, cards[0], cards[1], cards[2], cards[3], cards[4]} // flush
-	} else if isStraight(cards) {
-		return []int{STRAIGHT, cards[0]} // straight
-	} else if cards[0] == 14 && cards[1] == 5 && cards[2] == 4 && cards[3] == 3 && cards[4] == 2 {
+		return []int{FLUSH, ranks[0], ranks[1], ranks[2], ranks[3], ranks[4]} // flush
+	} else if isStraight(ranks) {
+		return []int{STRAIGHT, ranks[0]} // straight
+	} else if ranks[0] == 14 && ranks[1] == 5 && ranks[2] == 4 && ranks[3] == 3 && ranks[4] == 2 {
 		return []int{STRAIGHT, 3} // wheel straight
-	} else if cards[0] == cards[1] && cards[1] == cards[2] {
-		return []int{TRIPS, cards[0], cards[3], cards[4]} // trips
-	} else if cards[1] == cards[2] && cards[2] == cards[3] {
-		return []int{TRIPS, cards[1], cards[0], cards[4]} // trips
-	} else if cards[2] == cards[3] && cards[3] == cards[4] {
-		return []int{TRIPS, cards[2], cards[0], cards[1]} // trips
-	} else if cards[0] == cards[1] && cards[2] == cards[3] {
-		return []int{TWO, cards[0], cards[2], cards[4]} // twopair
-	} else if cards[0] == cards[1] && cards[3] == cards[4] {
-		return []int{TWO, cards[0], cards[3], cards[2]} // twopair
-	} else if cards[1] == cards[2] && cards[3] == cards[4] {
-		return []int{TWO, cards[1], cards[3], cards[0]} // twopair
-	} else if cards[0] == cards[1] {
-		return []int{PAIR, cards[0], cards[2], cards[3], cards[4]} // pair
-	} else if cards[1] == cards[2] {
-		return []int{PAIR, cards[1], cards[0], cards[3], cards[4]} // pair
-	} else if cards[2] == cards[3] {
-		return []int{PAIR, cards[2], cards[0], cards[1], cards[4]} // pair
-	} else if cards[3] == cards[4] {
-		return []int{PAIR, cards[3], cards[0], cards[1], cards[2]} // pair
+	} else if ranks[0] == ranks[1] && ranks[1] == ranks[2] {
+		return []int{TRIPS, ranks[0], ranks[3], ranks[4]} // trips
+	} else if ranks[1] == ranks[2] && ranks[2] == ranks[3] {
+		return []int{TRIPS, ranks[1], ranks[0], ranks[4]} // trips
+	} else if ranks[2] == ranks[3] && ranks[3] == ranks[4] {
+		return []int{TRIPS, ranks[2], ranks[0], ranks[1]} // trips
+	} else if ranks[0] == ranks[1] && ranks[2] == ranks[3] {
+		return []int{TWO, ranks[0], ranks[2], ranks[4]} // twopair
+	} else if ranks[0] == ranks[1] && ranks[3] == ranks[4] {
+		return []int{TWO, ranks[0], ranks[3], ranks[2]} // twopair
+	} else if ranks[1] == ranks[2] && ranks[3] == ranks[4] {
+		return []int{TWO, ranks[1], ranks[3], ranks[0]} // twopair
+	} else if ranks[0] == ranks[1] {
+		return []int{PAIR, ranks[0], ranks[2], ranks[3], ranks[4]} // pair
+	} else if ranks[1] == ranks[2] {
+		return []int{PAIR, ranks[1], ranks[0], ranks[3], ranks[4]} // pair
+	} else if ranks[2] == ranks[3] {
+		return []int{PAIR, ranks[2], ranks[0], ranks[1], ranks[4]} // pair
+	} else if ranks[3] == ranks[4] {
+		return []int{PAIR, ranks[3], ranks[0], ranks[1], ranks[2]} // pair
 	} else {
-		return []int{HI, cards[0], cards[1], cards[2], cards[3], cards[4]} // high card
+		return []int{HI, ranks[0], ranks[1], ranks[2], ranks[3], ranks[4]} // high card
 	}
 }
 
-func isSameSuit(cards []int) bool {
+func isSameSuit(cards Cards) bool {
 	suits := []int{}
 	for _, card := range cards {
-		suits = append(suits, card/13)
+		suits = append(suits, card.toInt()/13)
 	}
 	for i := 0; i < len(suits)-1; i++ {
 		if suits[i] != suits[i+1] {
@@ -195,6 +193,10 @@ func (c Card) String() string {
 
 	suit := suitTable[int(c)/13]
 	return rankStr + suit
+}
+
+func (c Card) toInt() int {
+	return int(c)
 }
 
 type Cards []Card
