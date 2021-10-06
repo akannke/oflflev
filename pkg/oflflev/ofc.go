@@ -10,11 +10,12 @@ import (
 
 // Deuce : 0
 const (
-	A        = 12
-	K        = 11
-	Q        = 10
-	J        = 9
-	T        = 8
+	A = 12
+	K = 11
+	Q = 10
+	J = 9
+	T = 8
+
 	ROYAL    = 9
 	STFL     = 8
 	QUADS    = 7
