@@ -1,19 +1,5 @@
 package oflflev
 
-func isTrips(cards []int) bool {
-	m := make(map[int]int)
-	for card := range cards {
-		m[card]++
-	}
-
-	for _, count := range m {
-		if count == 3 {
-			return true
-		}
-	}
-	return false
-}
-
 // buf消したい、override?
 func Combinations(list []int, select_num, buf int) (c chan []int) {
 	c = make(chan []int, buf)
